@@ -4,10 +4,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
 import android.animation.ArgbEvaluator;
+import android.animation.TimeInterpolator;
 import android.animation.ValueAnimator;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.Animation;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -26,16 +29,31 @@ public class MainActivity extends AppCompatActivity {
         if (isShleeping == false) {
             isShleeping = true;
             shleepTxt.setText("What's up?");
+            setAnimation(darkColor, lightColor, 8000);
+            colorAnimation.setRepeatMode(ValueAnimator.REVERSE);
+            colorAnimation.setInterpolator(new AccelerateInterpolator());
+            colorAnimation.setRepeatCount(Animation.INFINITE);
             colorAnimation.start();
         } else {
             isShleeping = false;
             shleepTxt.setText("Shleep.");
-            shleepApp.setBackgroundColor(Color.parseColor(darkColor));
+            colorAnimation.cancel();
+            setAnimation(lightColor, darkColor, 1000);
+            colorAnimation.start();
         }
     }
 
-    private void changeColors() {
+    private void setAnimation(String startColor, String endColor, long speed) {
+        colorAnimation = ValueAnimator.ofObject(new ArgbEvaluator(),
+                Color.parseColor(startColor), Color.parseColor(endColor));
+        colorAnimation.setDuration(speed);
+        colorAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
 
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                shleepApp.setBackgroundColor((int) animation.getAnimatedValue());
+            }
+        });
     }
 
     @Override
@@ -47,16 +65,6 @@ public class MainActivity extends AppCompatActivity {
         shleepBtn = (Button) findViewById(R.id.shleepBtn);
         shleepTxt = (TextView) findViewById(R.id.shleepTxt);
         isShleeping = false;
-        colorAnimation = ValueAnimator.ofObject(new ArgbEvaluator(),
-                Color.parseColor(darkColor), Color.parseColor(lightColor));
-        colorAnimation.setDuration(10000);
-        colorAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-
-            @Override
-            public void onAnimationUpdate(ValueAnimator animation) {
-                shleepApp.setBackgroundColor((int) animation.getAnimatedValue());
-            }
-        });
 
         shleepBtn.setOnClickListener(new View.OnClickListener() {
             @Override
