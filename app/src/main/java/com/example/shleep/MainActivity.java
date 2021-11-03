@@ -26,10 +26,32 @@ public class MainActivity extends AppCompatActivity {
     private ValueAnimator colorAnimation;
     private CountDownTimer shleepTimer;
 
+    private void hideSystemUI() {
+        View decorView = getWindow().getDecorView();
+        decorView.setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_IMMERSIVE | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN
+        );
+    }
+
+    private void showSystemUI() {
+        View decorView = getWindow().getDecorView();
+        decorView.setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+        );
+    }
+
     private void shleepNow() {
+        WindowManager.LayoutParams layoutParams = getWindow().getAttributes();
         if (isShleeping == false) {
             isShleeping = true;
+            hideSystemUI();
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            layoutParams.screenBrightness = 1;
+            getWindow().setAttributes(layoutParams);
             shleepTxt.setText("What's up?");
 
             setAnimation(darkColor, lightColor, 8000);
@@ -47,6 +69,9 @@ public class MainActivity extends AppCompatActivity {
             }.start();
         } else {
             isShleeping = false;
+            showSystemUI();
+            layoutParams.screenBrightness = -1;
+            getWindow().setAttributes(layoutParams);
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             shleepTxt.setText("Shleep.");
 
