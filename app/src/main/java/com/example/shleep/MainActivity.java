@@ -19,7 +19,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean isShleeping = false;
     private String darkColor = "#000000";
     private String lightColor = "#FFCAB0";
-    private double shleepMinutes = 0.1;
+    private double shleepMinutes = 15;
     private ConstraintLayout shleepApp;
     private Button shleepBtn;
     private TextView shleepTxt;
