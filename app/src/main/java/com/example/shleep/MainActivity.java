@@ -19,45 +19,70 @@ public class MainActivity extends AppCompatActivity {
     private boolean isShleeping = false;
     private String darkColor = "#000000";
     private String lightColor = "#FFCAB0";
-    private double shleepMinutes = 0.5;
+    private double shleepMinutes = 0.1;
     private ConstraintLayout shleepApp;
     private Button shleepBtn;
     private TextView shleepTxt;
     private ValueAnimator colorAnimation;
     private CountDownTimer shleepTimer;
 
-    private void hideSystemUI() {
+    private void showSystemUI(boolean showIt) {
         View decorView = getWindow().getDecorView();
-        decorView.setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_IMMERSIVE | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN
-        );
+        if (showIt) {
+            decorView.setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+            );
+        } else {
+            decorView.setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_IMMERSIVE
+                            | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                            | View.SYSTEM_UI_FLAG_FULLSCREEN
+            );
+        }
     }
 
-    private void showSystemUI() {
-        View decorView = getWindow().getDecorView();
-        decorView.setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-        );
-    }
-
-    private void shleepNow() {
+    private void changeScreen(boolean changeIt) {
         WindowManager.LayoutParams layoutParams = getWindow().getAttributes();
-        if (isShleeping == false) {
-            isShleeping = true;
-            hideSystemUI();
+        if (changeIt) {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             layoutParams.screenBrightness = 1;
             getWindow().setAttributes(layoutParams);
-            shleepTxt.setText("What's up?");
+        } else {
+            layoutParams.screenBrightness = -1;
+            getWindow().setAttributes(layoutParams);
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
+    }
 
-            setAnimation(darkColor, lightColor, 8000);
+    private void setInfiniteAnimation(boolean isInfinite) {
+        if (isInfinite) {
+            colorAnimation = ValueAnimator.ofObject(new ArgbEvaluator(),
+                    Color.parseColor(darkColor), Color.parseColor(lightColor));
+            colorAnimation.setDuration(9000);
             colorAnimation.setRepeatMode(ValueAnimator.REVERSE);
             colorAnimation.setInterpolator(new AccelerateInterpolator());
             colorAnimation.setRepeatCount(Animation.INFINITE);
+        } else {
+            colorAnimation.cancel();
+            colorAnimation = ValueAnimator.ofObject(new ArgbEvaluator(),
+                    Color.parseColor(lightColor), Color.parseColor(darkColor));
+            colorAnimation.setDuration(1000);
+        }
+        colorAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                shleepApp.setBackgroundColor((int) animation.getAnimatedValue());
+            }
+        });
+    }
+
+    private void makeTimer(boolean makeIt) {
+        if (makeIt) {
             shleepTimer = new CountDownTimer((long) (shleepMinutes * 60000), 1000) {
                 @Override
                 public void onTick(long millisUntilFinished) {
@@ -68,31 +93,28 @@ public class MainActivity extends AppCompatActivity {
                 }
             }.start();
         } else {
-            isShleeping = false;
-            showSystemUI();
-            layoutParams.screenBrightness = -1;
-            getWindow().setAttributes(layoutParams);
-            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-            shleepTxt.setText("Shleep.");
-
-            colorAnimation.cancel();
-            setAnimation(lightColor, darkColor, 1000);
             shleepTimer.cancel();
         }
-        colorAnimation.start();
+
     }
 
-    private void setAnimation(String startColor, String endColor, long speed) {
-        colorAnimation = ValueAnimator.ofObject(new ArgbEvaluator(),
-                Color.parseColor(startColor), Color.parseColor(endColor));
-        colorAnimation.setDuration(speed);
-        colorAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-
-            @Override
-            public void onAnimationUpdate(ValueAnimator animation) {
-                shleepApp.setBackgroundColor((int) animation.getAnimatedValue());
-            }
-        });
+    private void shleepNow() {
+        if (isShleeping == false) {
+            isShleeping = true;
+            shleepTxt.setText("shleep.");
+            showSystemUI(false);
+            changeScreen(true);
+            setInfiniteAnimation(true);
+            makeTimer(true);
+        } else {
+            isShleeping = false;
+            shleepTxt.setText("What's up?");
+            changeScreen(false);
+            showSystemUI(true);
+            setInfiniteAnimation(false);
+            makeTimer(false);
+        }
+        colorAnimation.start();
     }
 
     @Override
@@ -103,6 +125,9 @@ public class MainActivity extends AppCompatActivity {
         shleepApp = (ConstraintLayout) findViewById(R.id.shleepApp);
         shleepBtn = (Button) findViewById(R.id.shleepBtn);
         shleepTxt = (TextView) findViewById(R.id.shleepTxt);
+
+        showSystemUI(true);
+        shleepTxt.setText("What's up?");
 
         shleepBtn.setOnClickListener(new View.OnClickListener() {
             @Override
