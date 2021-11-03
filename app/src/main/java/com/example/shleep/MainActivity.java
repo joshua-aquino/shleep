@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.Animation;
 import android.widget.Button;
@@ -15,9 +16,10 @@ import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
 
+    private boolean isShleeping = false;
     private String darkColor = "#000000";
     private String lightColor = "#FFCAB0";
-    private boolean isShleeping = false;
+    private double shleepMinutes = 0.5;
     private ConstraintLayout shleepApp;
     private Button shleepBtn;
     private TextView shleepTxt;
@@ -27,13 +29,14 @@ public class MainActivity extends AppCompatActivity {
     private void shleepNow() {
         if (isShleeping == false) {
             isShleeping = true;
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             shleepTxt.setText("What's up?");
 
             setAnimation(darkColor, lightColor, 8000);
             colorAnimation.setRepeatMode(ValueAnimator.REVERSE);
             colorAnimation.setInterpolator(new AccelerateInterpolator());
             colorAnimation.setRepeatCount(Animation.INFINITE);
-            shleepTimer = new CountDownTimer(10000, 1000) {
+            shleepTimer = new CountDownTimer((long) (shleepMinutes * 60000), 1000) {
                 @Override
                 public void onTick(long millisUntilFinished) {
                 }
@@ -44,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
             }.start();
         } else {
             isShleeping = false;
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             shleepTxt.setText("Shleep.");
 
             colorAnimation.cancel();
